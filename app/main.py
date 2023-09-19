@@ -1,4 +1,4 @@
-from views import menu
+from modules.view.views import menu
 
 if __name__ == '__main__':
 

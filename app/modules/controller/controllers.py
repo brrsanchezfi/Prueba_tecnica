@@ -1,7 +1,8 @@
-from app.model import Product
-
+from ..model.model import Product
+import csv
 import sqlite3
 import os
+
 
 db_path = os.path.join("database", "inventory.db")
 
@@ -17,7 +18,7 @@ def show_product_controller():
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM Products")
+            cursor.execute("SELECT code, name, quantity FROM Products")
             products = cursor.fetchall()
             return products
     
@@ -26,7 +27,32 @@ def show_product_controller():
         print("Error al obtener todos los productos:", str(e))
         return None
     
+def show_withdraw():
 
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT code, name, quantity, date FROM Withdraw")
+            products = cursor.fetchall()
+            return products
+    
+    
+    except sqlite3.Error as e:
+        print("Error al obtener todos los productos:", str(e))
+        return None
+
+def show_defective():
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT code, name, quantity, date FROM Defective")
+            products = cursor.fetchall()
+            return products
+    
+    
+    except sqlite3.Error as e:
+        print("Error al obtener todos los productos:", str(e))
+        return None
 
 def create_product_controller( code:str , name:str , quantity:int , state:bool=False, id:int=None ):
 
@@ -38,13 +64,22 @@ def create_product_controller( code:str , name:str , quantity:int , state:bool=F
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute('''INSERT INTO Products (name,code,quantity,state) 
-                        VALUES (?,?,?,?)''', (producto.name, producto.code , producto.quantity , producto.state))
+
+            cursor.execute('''SELECT id, quantity FROM Products WHERE code = ?''', (code,))
+            existing_product = cursor.fetchone()
+
+            if existing_product:
+                # Si el producto existe, actualiza la cantidad sumándola
+                product_id, existing_quantity = existing_product
+                new_quantity = existing_quantity + quantity
+                cursor.execute('''UPDATE Products SET quantity = ? WHERE code = ?''', (producto.quantity, producto.code))
+            else:
+                # Si el producto no existe, crea uno nuevo
+                cursor.execute('''INSERT INTO Products (name,code,quantity,state) 
+                            VALUES (?,?,?,?)''', (producto.name, producto.code , producto.quantity , producto.state))
             conn.commit()
     except sqlite3.Error as e:
         print("Error al registrar el producto:", str(e))
-
-
     
 def withdraw_product_controller( code:str , withdrawal_quantity:int ):
 
@@ -73,9 +108,39 @@ def withdraw_product_controller( code:str , withdrawal_quantity:int ):
     except sqlite3.Error as e:
         print("Error al retirar el producto:", str(e))
 
+def withdraw_products_controller(archivo_csv):
 
 
-def update_product_state_controller( code:str , new_state:bool , withdrawal_quantity:int ):
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+        # Leer el archivo CSV y actualizar la base de datos
+        with open(archivo_csv, 'r', newline='') as csvfile:
+            csvreader = csv.reader(csvfile)
+            next(csvreader)  # Saltar la fila de encabezados si la tiene
+
+            for row in csvreader:
+                        code, name, quantity = row[0], row[1] , int(row[2])
+
+                        # Verificar si el producto ya existe en la base de datos
+                        cursor.execute("SELECT code, quantity FROM Products WHERE code =?", (code,))
+                        resultado = cursor.fetchone()
+
+                        if resultado:
+                            # Si el producto existe, actualiza la cantidad
+                            producto_id, cantidad_existente = resultado
+                            nueva_cantidad = cantidad_existente + quantity
+                            cursor.execute("UPDATE Products SET quantity=? WHERE code=?", (nueva_cantidad, code))
+                        else:
+                            # Si el producto no existe, agrégalo a la base de datos
+                            cursor.execute("INSERT INTO Products (code, name, quantity, state) VALUES (?, ?, ?, ?)", (code, name, quantity, 1))
+
+                # Guardar los cambios en la base de datos y cerrar la conexión
+
+
+
+
+
+def update_product_state_controller( code:str , withdrawal_quantity:int ):
     """Sirve para registrar los defectuodos, ademas desencadena untrigger que registra el evento en
         otra tabla
 
