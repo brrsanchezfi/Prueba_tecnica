@@ -1,11 +1,11 @@
-
 import sqlite3
 import os
-
-db_path = os.path.join("app","database", "inventory.db")
+current_directory = os.path.dirname(os.path.abspath(__file__))
+db_path = os.path.join("database", "inventory.db")
 
 
 def create_tables():
+
     """Crea la base de datos, primero comprueba que no existe
         y crea el trigger para actualizar quantity
     """
@@ -19,6 +19,7 @@ def create_tables():
                             name VARCHAR(50),
                             quantity INTEGER, 
                             state BOOLEAN DEFAULT 0  -- comodin
+                            CONSTRAINT pk_Products PRIMARY KEY (code, name)
                             )''')
             
             cursor.execute('''CREATE TABLE IF NOT EXISTS Withdraw(
@@ -65,6 +66,8 @@ def create_tables():
                             ''')
 
     except sqlite3.Error as e:
-        print("Funtion - create_tables -- || -- " , str(e))
+        print("Error en create_tables:", str(e))
+
+
 
 create_tables()

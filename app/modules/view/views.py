@@ -8,10 +8,24 @@ import os
 
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
+    print('''
+              
+
+  ####    ##   ##  ##   ##  #######  ##   ##  ######     ##     ######    ####     #####
+   ##     ###  ##   ##  ##   #  ###  ##  ###    ##      ####     ##  ##    ##     ##   ##
+   ##     #### ##   ## ##    ## #    #### ##    ##     ##  ##    ##  ##    ##     ##   ##
+   ##     ## ####   ## ##    ####    ## ####    ##     ##  ##    #####     ##     ##   ##
+   ##     ##  ###    ###     ## #    ##  ###    ##     ######    ## ##     ##     ##   ##
+   ##     ##   ##    ###     ##   #  ##   ##    ##     ##  ##    ##  ##    ##     ##   ##
+  ####    ##   ##     #     #######  ##   ##   ####    ##  ##   #### ##   ####     #####
+
+                            Sistema de Registro            
+              ''')
 
 def show_all_time():
+    clear()
     print('''
-            Productos Registrados
+                        Productos Registrados
 
              ''')
 
@@ -44,50 +58,46 @@ def submenu_1():
             input('presione ENTER para Regresar: ')
             break
 
-
-
-
 def submenu_2():
     while(True):
         clear()
+        show_all_time()
+
         print('''
-              
-            Ingrese los datos del producto
-              
-              ''')
+        ------------------------------------------------------------------------------
+        ''')
 
-        code = input("Ingrese codigo de producto")
-        name = input("Ingrese nombre del producto")
-        state = input('''estado del producto, por defecto es no defectuoso
-                        1. defectuoso''')
-        if state == '1': state = True
-        if state != '1': state = False
-        else: continue
-        
-        quantity = input("Por favor, ingresa la cantidad del producto: ")
 
-        try:
-            quantity = int(quantity)
-        except ValueError:
-            print("La entrada no es un número entero válido.")
+        code = input("Ingrese codigo de producto: ")
+        name = input("Ingrese nombre del producto: ")
+        quantity = None  # Inicializamos quantity como None
 
-        create_product_controller(code=code, name=name, state=state, quantity=quantity)
+        error_occurred = False  # Variable para rastrear si ocurrió un error
 
-        input("Enter para regresar al menu principal")
+        while quantity is None:
+            try:
+                quantity = int(input("Por favor, ingresa la cantidad del producto: "))
+            except ValueError:
+                error_occurred = True  # Marcamos que ocurrió un error
+                clear()  # Borramos la pantalla antes de mostrar el mensaje de error
+                print("La entrada no es un número entero válido.")
+
+        if not error_occurred:
+            create_product_controller(code=code, name=name, state=0, quantity=quantity)
+
+        input("Enter para regresar al menu principal...")
         break
  
-
-
-
 def submenu_3():
+    clear()
 
     def abrir_dialogo_seleccion_archivo():
         archivo_csv = filedialog.askopenfilename(filetypes=[("Archivos CSV", "*.csv")])
         archivo_csv = os.path.normpath(archivo_csv)
 
         if archivo_csv:
-            print(f"Archivo seleccionado: {archivo_csv}")
             withdraw_products_controller(archivo_csv)
+            ventana.destroy()
 
     print('''
             Sistema gestor de carga de archivos para la ingesta masiva de inventario
@@ -95,11 +105,12 @@ def submenu_3():
                 acontinuacion siga las instrucciones, asegurese de que sua archivo 
                 dentro de un localPath 
 
-                1. prepare un archivo .csv, .xml, .json que contenga 3 columnas o atributos
+                1. prepare un archivo .csv, que contenga 3 columnas o atributos
                         ++--------+--------------------+----------++
                         || Codigo | Nombre de Producto | Cantidad ||
                         ++--------+--------------------+----------++    
-
+                2. Se abrira un explorador de archivos para encontrar la hubicacion 
+                    del archivo, seleccionelo y cierre la centana para continuar
         ''')
 
     # Crear una ventana de tkinter
@@ -112,11 +123,7 @@ def submenu_3():
 
     # Ejecutar la ventana principal de tkinter
     ventana.mainloop()
-    
-
-
-
-
+    input("Presione ENTER para continuar...")
 
 def submenu_4():
     clear()

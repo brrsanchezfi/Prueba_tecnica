@@ -59,7 +59,7 @@ def create_product_controller( code:str , name:str , quantity:int , state:bool=F
     """Funcion para crear producto
     """
 
-    producto = Product( id , code , name , quantity , state)
+    producto = Product( id , code , name , quantity , 0)
 
     try:
         with sqlite3.connect(db_path) as conn:
@@ -120,7 +120,7 @@ def withdraw_products_controller(archivo_csv):
 
             for row in csvreader:
                         code, name, quantity = row[0], row[1] , int(row[2])
-
+                        print(row[0], row[1] , int(row[2]))
                         # Verificar si el producto ya existe en la base de datos
                         cursor.execute("SELECT code, quantity FROM Products WHERE code =?", (code,))
                         resultado = cursor.fetchone()
@@ -132,12 +132,9 @@ def withdraw_products_controller(archivo_csv):
                             cursor.execute("UPDATE Products SET quantity=? WHERE code=?", (nueva_cantidad, code))
                         else:
                             # Si el producto no existe, agrégalo a la base de datos
-                            cursor.execute("INSERT INTO Products (code, name, quantity, state) VALUES (?, ?, ?, ?)", (code, name, quantity, 1))
+                            cursor.execute("INSERT INTO Products (code, name, quantity, state) VALUES (?, ?, ?, ?)", (code, name, quantity, 0))
 
                 # Guardar los cambios en la base de datos y cerrar la conexión
-
-
-
 
 
 def update_product_state_controller( code:str , withdrawal_quantity:int ):
@@ -168,5 +165,3 @@ def update_product_state_controller( code:str , withdrawal_quantity:int ):
 
     except sqlite3.Error as e:
         print("Error al actualizar el estado del producto:", str(e))
-
-
